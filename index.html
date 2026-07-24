@@ -125,7 +125,7 @@
 
   .ice-cube {
     position: absolute;
-    top: 9px; left: 12px;
+    bottom: 2px; left: 13px;
     width: 13px; height: 13px;
     background: #E9F1FA40;
     border: 1px solid #FFFFFF55;
@@ -536,10 +536,6 @@
     100% { opacity: 0; transform: translateY(-46px) scale(0.4); }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .confetti-piece, .bubble { display: none; }
-    .app.shake { animation: none; }
-  }
 </style>
 </head>
 <body>
@@ -786,50 +782,26 @@ function shuffleOptions(q) {
 }
 questions.forEach(shuffleOptions);
 
-function prefersReducedMotion() {
-  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-let audioCtx = null;
-function getAudioCtx() {
-  if (!audioCtx) {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
-    audioCtx = new Ctx();
-  }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-
-function playTone(freqs, type, dur) {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  freqs.forEach((f, i) => {
-    const start = ctx.currentTime + i * dur;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = f;
-    gain.gain.setValueAtTime(0.001, start);
-    gain.gain.exponentialRampToValueAtTime(0.16, start + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(start);
-    osc.stop(start + dur);
-  });
-}
+const hitSound = new Audio(encodeURI('Children Yay Sound Effect (HD) - Joe The Sound Effect Maker.mp3'));
+const missSound = new Audio(encodeURI('Грустный тромбон - Madlen Royal.mp3'));
+hitSound.volume = 0.6;
+missSound.volume = 0.6;
 
 function playHitSound() {
-  playTone([880, 1318], 'sine', 0.13);
+  try {
+    hitSound.currentTime = 0;
+    hitSound.play().catch(() => {});
+  } catch (e) {}
 }
 
 function playMissSound() {
-  playTone([180, 110], 'square', 0.16);
+  try {
+    missSound.currentTime = 0;
+    missSound.play().catch(() => {});
+  } catch (e) {}
 }
 
 function fireConfetti(x, y) {
-  if (prefersReducedMotion()) return;
   const colors = ['#E8B355', '#F2777A', '#EDE7DA', '#C4863A'];
   for (let i = 0; i < 20; i++) {
     const p = document.createElement('div');
@@ -853,7 +825,6 @@ function fireConfettiFromReveal() {
 }
 
 function shakeScreen() {
-  if (prefersReducedMotion()) return;
   const app = document.querySelector('.app');
   app.classList.remove('shake');
   void app.offsetWidth;
@@ -861,7 +832,6 @@ function shakeScreen() {
 }
 
 function addBubbles() {
-  if (prefersReducedMotion()) return;
   const body = document.querySelector('.glass-body');
   if (!body) return;
   for (let i = 0; i < 4; i++) {
@@ -922,7 +892,7 @@ const missPhrases = [
   "Мимо! Ну хоть в постели, наверное, лучше ориентируется, чем в её жизни.",
   "Ноль! Даже гугл бы справился лучше.",
   "Промах! Скажи спасибо, что не она сейчас это слушает.",
-  "Не угадал. Ты точно её невесту знаешь, а не соседку?",
+  "Не угадал. Ты точно свою невесту знаешь, а не соседку?",
   "Мимо! Ставим ему жирный минус и штрафную покрепче.",
   "Ай, позорище. Записываем в протокол мальчишника.",
   "Промах! Может, дело не в памяти, а в том, что не спрашивал никогда?",
