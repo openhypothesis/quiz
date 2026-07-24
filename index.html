@@ -308,9 +308,75 @@
   .dot.current { background: var(--text); height: 20px; }
 
   .final-card {
+    position: relative;
     text-align: center;
     padding: 44px 30px;
     box-shadow: inset 0 0 0 1px var(--gold-dim);
+  }
+
+  .cert-corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--gold);
+    opacity: 0.7;
+  }
+
+  .cert-corner.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+  .cert-corner.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+  .cert-corner.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+  .cert-corner.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+  .cert-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .cert-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: -8px;
+    margin-bottom: 22px;
+  }
+
+  .final-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .print-btn {
+    font-family: 'JetBrains Mono', monospace;
+    background: none;
+    border: 1.5px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .print-btn:hover { border-color: var(--text-dim); color: var(--text); }
+
+  @media print {
+    body * { visibility: hidden; }
+    .final-card, .final-card * { visibility: visible; }
+    .final-card {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      margin: 0 auto;
+      background: #fff;
+      color: #12181F;
+      box-shadow: none;
+      border: 2px solid #E8B355;
+    }
+    .final-card .big-num { color: #C4863A; }
+    .rank-badge, .cert-eyebrow, .cert-date, .big-label { color: #5A5045; border-color: #E8B355; }
+    .final-actions { display: none; }
   }
 
   .final-card .big-num {
@@ -379,35 +445,134 @@
     margin-bottom: 20px;
   }
 
+  .start-screen {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    padding: 40px 20px;
+    animation: reveal-in 0.4s ease-out;
+  }
+
+  .start-emoji { font-size: 48px; }
+
+  .start-title {
+    font-size: 34px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.15;
+  }
+
+  .start-sub {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 420px;
+    margin: 0;
+  }
+
+  .start-btn {
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    background: var(--gold);
+    color: #1B2430;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  .start-btn:hover { background: #F0BF6E; }
+
   @media (max-width: 480px) {
     h1 { font-size: 26px; }
     .q-text { font-size: 19px; }
     .card { padding: 22px 18px 20px; }
+    .start-title { font-size: 27px; }
+  }
+
+  .confetti-piece {
+    position: fixed;
+    width: 6px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 2px;
+    animation: confetti-fall 0.9s ease-out forwards;
+  }
+
+  @keyframes confetti-fall {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--dx), 150px) rotate(var(--rot)); opacity: 0; }
+  }
+
+  @keyframes shake-anim {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+  }
+
+  .app.shake { animation: shake-anim 0.4s; }
+
+  .bubble {
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    background: #FFE9BE99;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: bubble-rise 1s ease-in forwards;
+  }
+
+  @keyframes bubble-rise {
+    0% { opacity: 0.9; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-46px) scale(0.4); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .confetti-piece, .bubble { display: none; }
+    .app.shake { animation: none; }
   }
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <h1>Насколько ты знаешь<br>свою невесту?</h1>
-    <p class="intro-line">26 вопросов о Лив — для Лехи. Варианты каждый раз перемешиваются заново, так что подглядеть не выйдет.</p>
+<div class="app" id="app">
+  <div class="start-screen" id="startScreen">
+    <div class="start-emoji">🥃</div>
+    <h1 class="start-title">Готов, жених?</h1>
+    <p class="start-sub">26 вопросов о Лив. Сейчас узнаем, слушал ты её всё это время или просто кивал.</p>
+    <button class="start-btn" onclick="startQuiz()">Начать 🎬</button>
   </div>
 
-  <div class="glass-wrap">
-    <div class="glass">
-      <div class="glass-outline"></div>
-      <div class="glass-body">
-        <div class="glass-fill" id="glassFill"></div>
-        <div class="ice-cube"></div>
+  <div id="quizWrap" style="display: none;">
+    <div class="header">
+      <h1>Насколько ты знаешь<br>свою невесту?</h1>
+      <p class="intro-line">26 вопросов о Лив — для Лехи. Варианты каждый раз перемешиваются заново, так что подглядеть не выйдет.</p>
+    </div>
+
+    <div class="glass-wrap">
+      <div class="glass">
+        <div class="glass-outline"></div>
+        <div class="glass-body">
+          <div class="glass-fill" id="glassFill"></div>
+          <div class="ice-cube"></div>
+        </div>
+      </div>
+      <div class="meter-info">
+        <div class="score-text">Верных ответов: <b id="scoreNum">0</b> / <span id="scoreTotal">26</span></div>
+        <div class="meter-label" id="meterLabel">Бокал пуст</div>
       </div>
     </div>
-    <div class="meter-info">
-      <div class="score-text">Верных ответов: <b id="scoreNum">0</b> / <span id="scoreTotal">26</span></div>
-      <div class="meter-label" id="meterLabel">Бокал пуст</div>
-    </div>
-  </div>
 
-  <div id="quizArea"></div>
+    <div id="quizArea"></div>
+  </div>
 </div>
 
 <script>
@@ -621,6 +786,94 @@ function shuffleOptions(q) {
 }
 questions.forEach(shuffleOptions);
 
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freqs, type, dur) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  freqs.forEach((f, i) => {
+    const start = ctx.currentTime + i * dur;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.001, start);
+    gain.gain.exponentialRampToValueAtTime(0.16, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + dur);
+  });
+}
+
+function playHitSound() {
+  playTone([880, 1318], 'sine', 0.13);
+}
+
+function playMissSound() {
+  playTone([180, 110], 'square', 0.16);
+}
+
+function fireConfetti(x, y) {
+  if (prefersReducedMotion()) return;
+  const colors = ['#E8B355', '#F2777A', '#EDE7DA', '#C4863A'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.setProperty('--dx', (Math.random() * 180 - 90) + 'px');
+    p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDelay = (Math.random() * 0.08) + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1100);
+  }
+}
+
+function fireConfettiFromReveal() {
+  const tag = quizArea.querySelector('.reveal-tag.hit');
+  if (!tag) return;
+  const r = tag.getBoundingClientRect();
+  fireConfetti(r.left + r.width / 2, r.top);
+}
+
+function shakeScreen() {
+  if (prefersReducedMotion()) return;
+  const app = document.querySelector('.app');
+  app.classList.remove('shake');
+  void app.offsetWidth;
+  app.classList.add('shake');
+}
+
+function addBubbles() {
+  if (prefersReducedMotion()) return;
+  const body = document.querySelector('.glass-body');
+  if (!body) return;
+  for (let i = 0; i < 4; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.style.left = (10 + Math.random() * 30) + 'px';
+    b.style.animationDelay = (Math.random() * 0.3) + 's';
+    body.appendChild(b);
+    setTimeout(() => b.remove(), 1300);
+  }
+}
+
 const hitPhrases = [
   "Есть! Леха видно слушал, а не просто кивал.",
   "В точку! Плюс балл к семейному стажу.",
@@ -686,7 +939,8 @@ const scoreTotal = document.getElementById('scoreTotal');
 const glassFill = document.getElementById('glassFill');
 const meterLabel = document.getElementById('meterLabel');
 
-scoreTotal.textContent = questions.filter(q => !q.noGuess).length;
+const guessTotal = questions.filter(q => !q.noGuess).length;
+scoreTotal.textContent = guessTotal;
 
 function getMeterLabel(pct) {
   if (pct === 0) return 'Бокал пуст';
@@ -698,7 +952,7 @@ function getMeterLabel(pct) {
 
 function updateMeter() {
   scoreNum.textContent = score;
-  const pct = (score / questions.length) * 100;
+  const pct = (score / guessTotal) * 100;
   glassFill.style.height = pct + '%';
   meterLabel.textContent = getMeterLabel(pct);
 }
@@ -795,19 +1049,25 @@ function render() {
 function selectOption(i) {
   if (answered[current] !== null) return;
   answered[current] = i;
+  let hit = false;
   if (!questions[current].noGuess) {
     const item = questions[current];
-    const hit = correctSet(item).includes(i);
+    hit = correctSet(item).includes(i);
     if (hit) {
       reactions[current] = hitPhrases[Math.floor(Math.random() * hitPhrases.length)];
       score++;
       updateMeter();
+      addBubbles();
+      playHitSound();
     } else {
       const specific = item.roasts && item.roasts[i];
       reactions[current] = specific || missPhrases[Math.floor(Math.random() * missPhrases.length)];
+      playMissSound();
+      shakeScreen();
     }
   }
   render();
+  if (hit) fireConfettiFromReveal();
 }
 
 function goNext() {
@@ -823,7 +1083,6 @@ function goPrev() {
 }
 
 function renderFinal() {
-  const guessTotal = questions.filter(q => !q.noGuess).length;
   const pct = Math.round((score / guessTotal) * 100);
   let verdict, rank;
   if (pct >= 85) {
@@ -840,13 +1099,22 @@ function renderFinal() {
     verdict = "Леха, срочно домой изучать матчасть! Но невеста всё равно тебя любит 💛";
   }
 
+  const dateStr = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+
   quizArea.innerHTML = `
     <div class="card final-card">
+      <div class="cert-corner tl"></div><div class="cert-corner tr"></div>
+      <div class="cert-corner bl"></div><div class="cert-corner br"></div>
+      <div class="cert-eyebrow">Сертификат жениха</div>
       <div class="rank-badge">${rank}</div>
       <div class="big-num">${score}/${guessTotal}</div>
       <div class="big-label">Итоговый результат</div>
       <div class="verdict">${verdict}</div>
-      <button class="restart-btn" onclick="restart()">Пройти заново</button>
+      <div class="cert-date">Выдано на мальчишнике · ${dateStr}</div>
+      <div class="final-actions">
+        <button class="restart-btn" onclick="restart()">Пройти заново</button>
+        <button class="print-btn" onclick="window.print()">🖨️ Сохранить как картинку</button>
+      </div>
     </div>
   `;
 }
@@ -861,7 +1129,11 @@ function restart() {
   render();
 }
 
-render();
+function startQuiz() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizWrap').style.display = '';
+  render();
+}
 </script>
 </body>
 </html>
