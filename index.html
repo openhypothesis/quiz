@@ -611,10 +611,10 @@ const questions = [
   },
   {
     q: "Есть ли у невесты приметная родинка или шрам? Где именно?",
-    options: ["Родинка на лице", "Родинка на пояснице", "Шрам на руке", "Родимое пятно на пояснице"],
+    options: ["Родинка на лице", "Родинка на шее", "Шрам на руке", "Родимое пятно на пояснице"],
     correct: 0,
     video: "Кружочек №6",
-    roasts: [null, "На пояснице? Ты явно перепутал с другим вариантом ответа.", "Шрам на руке — ты что, её с бойцом перепутал?", "Родимое пятно на пояснице — место почти угадал, суть — нет."]
+    roasts: [null, "На шее? Ты явно перепутал её с кем-то другим.", "Шрам на руке — ты что, её с бойцом перепутал?", "Родимое пятно на пояснице — это правда есть, но не то, что спросили."]
   },
   {
     q: "Любимое блюдо и напиток невесты (сейчас)?",
@@ -903,6 +903,43 @@ let score = 0;
 let answered = new Array(questions.length).fill(null);
 let reactions = new Array(questions.length).fill(null);
 
+const PROGRESS_KEY = 'nastasha-lyokha-quiz-progress';
+
+function saveProgress() {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      current, score, answered, reactions,
+      questions: questions.map(q => ({ options: q.options, correct: q.correct, roasts: q.roasts }))
+    }));
+  } catch (e) {}
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.questions) || data.questions.length !== questions.length) return false;
+    if (!Array.isArray(data.answered) || data.answered.length !== questions.length) return false;
+    data.questions.forEach((qState, i) => {
+      questions[i].options = qState.options;
+      questions[i].correct = qState.correct;
+      questions[i].roasts = qState.roasts;
+    });
+    current = data.current || 0;
+    score = data.score || 0;
+    answered = data.answered;
+    reactions = data.reactions;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function clearProgress() {
+  try { localStorage.removeItem(PROGRESS_KEY); } catch (e) {}
+}
+
 const quizArea = document.getElementById('quizArea');
 const scoreNum = document.getElementById('scoreNum');
 const scoreTotal = document.getElementById('scoreTotal');
@@ -1038,17 +1075,22 @@ function selectOption(i) {
   }
   render();
   if (hit) fireConfettiFromReveal();
+  saveProgress();
 }
 
 function goNext() {
   current++;
   render();
+  window.scrollTo(0, 0);
+  if (current < questions.length) saveProgress();
 }
 
 function goPrev() {
   if (current > 0) {
     current--;
     render();
+    window.scrollTo(0, 0);
+    saveProgress();
   }
 }
 
@@ -1087,6 +1129,7 @@ function renderFinal() {
       </div>
     </div>
   `;
+  clearProgress();
 }
 
 function restart() {
@@ -1096,12 +1139,16 @@ function restart() {
   reactions = new Array(questions.length).fill(null);
   questions.forEach(shuffleOptions);
   updateMeter();
+  clearProgress();
   render();
 }
 
 function startQuiz() {
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('quizWrap').style.display = '';
+  if (loadProgress()) {
+    updateMeter();
+  }
   render();
 }
 </script>
