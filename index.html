@@ -782,79 +782,6 @@ function shuffleOptions(q) {
 }
 questions.forEach(shuffleOptions);
 
-const hitSound = new Audio(encodeURI('Children Yay Sound Effect (HD) - Joe The Sound Effect Maker.mp3'));
-const missSound = new Audio(encodeURI('Грустный тромбон - Madlen Royal.mp3'));
-hitSound.volume = 0.6;
-missSound.volume = 0.6;
-
-// Web Audio path: decode both files once, detect where the actual sound
-// starts (skipping any silent lead-in), then always play from that offset.
-// Falls back to the plain <audio> elements above if decoding isn't ready yet.
-let sfxCtx = null;
-let hitBuffer = null, missBuffer = null;
-let hitOffset = 0, missOffset = 0;
-
-function detectStartOffset(buffer) {
-  const data = buffer.getChannelData(0);
-  const threshold = 0.02;
-  for (let i = 0; i < data.length; i++) {
-    if (Math.abs(data[i]) > threshold) {
-      return Math.max(0, i / buffer.sampleRate - 0.02);
-    }
-  }
-  return 0;
-}
-
-async function preloadSfx() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    sfxCtx = new Ctx();
-    const decode = async (url) => {
-      const resp = await fetch(encodeURI(url));
-      const arr = await resp.arrayBuffer();
-      return sfxCtx.decodeAudioData(arr);
-    };
-    hitBuffer = await decode('Children Yay Sound Effect (HD) - Joe The Sound Effect Maker.mp3');
-    hitOffset = detectStartOffset(hitBuffer);
-    missBuffer = await decode('Грустный тромбон - Madlen Royal.mp3');
-    missOffset = detectStartOffset(missBuffer);
-  } catch (e) {}
-}
-preloadSfx();
-
-function playBuffer(buffer, offset) {
-  if (!sfxCtx || !buffer) return false;
-  try {
-    if (sfxCtx.state === 'suspended') sfxCtx.resume();
-    const src = sfxCtx.createBufferSource();
-    const gain = sfxCtx.createGain();
-    gain.gain.value = 0.6;
-    src.buffer = buffer;
-    src.connect(gain);
-    gain.connect(sfxCtx.destination);
-    src.start(0, offset);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function playHitSound() {
-  try {
-    if (playBuffer(hitBuffer, hitOffset)) return;
-    hitSound.currentTime = 0;
-    hitSound.play().catch(() => {});
-  } catch (e) {}
-}
-
-function playMissSound() {
-  try {
-    if (playBuffer(missBuffer, missOffset)) return;
-    missSound.currentTime = 0;
-    missSound.play().catch(() => {});
-  } catch (e) {}
-}
 
 function fireConfetti(x, y) {
   const colors = ['#E8B355', '#F2777A', '#EDE7DA', '#C4863A'];
@@ -1120,11 +1047,9 @@ function selectOption(i) {
       score++;
       updateMeter();
       addBubbles();
-      playHitSound();
     } else {
       const specific = item.roasts && item.roasts[i];
       reactions[current] = specific || missPhrases[Math.floor(Math.random() * missPhrases.length)];
-      playMissSound();
       shakeScreen();
     }
   }
