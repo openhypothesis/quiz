@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Насколько ты знаешь свою невесту?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #1B2430;
+    --bg-deep: #12181F;
+    --panel: #232E3D;
+    --panel-border: #34415470;
+    --gold: #E8B355;
+    --gold-dim: #E8B35533;
+    --coral: #F2777A;
+    --coral-dim: #F2777A22;
+    --text: #EDE7DA;
+    --text-dim: #9BA6B5;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 340px);
+    color: var(--text);
+    font-family: 'Fraunces', serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 80px;
+  }
+
+  .app { width: 100%; max-width: 640px; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    line-height: 1.15;
+  }
+
+  .intro-line {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 460px;
+    margin: 10px auto 0;
+  }
+
+  /* Whiskey-glass progress meter */
+  .glass-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 26px 0 30px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .glass {
+    position: relative;
+    width: 54px;
+    height: 74px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 6px 10px #00000050);
+  }
+
+  .glass-outline {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(16% 0%, 84% 0%, 75% 100%, 25% 100%);
+    background: linear-gradient(180deg, #5A6B8080, #2A344080);
+  }
+
+  .glass-outline::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 14%; right: 14%;
+    height: 3px;
+    background: #8B99AC;
+    border-radius: 2px;
+  }
+
+  .glass-body {
+    position: absolute;
+    top: 3px; left: 5px; right: 5px; bottom: 3px;
+    clip-path: polygon(15% 0%, 85% 0%, 75% 100%, 25% 100%);
+    background: #12181Fd0;
+    overflow: hidden;
+  }
+
+  .glass-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, #FFFFFF14 48%, transparent 56%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .glass-fill {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, var(--gold), #C4863A);
+    height: 0%;
+    transition: height 0.6s cubic-bezier(.4,1.4,.6,1);
+  }
+
+  .glass-fill::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: #FFE9BE;
+    opacity: 0.7;
+  }
+
+  .ice-cube {
+    position: absolute;
+    top: 9px; left: 12px;
+    width: 13px; height: 13px;
+    background: #E9F1FA40;
+    border: 1px solid #FFFFFF55;
+    border-radius: 3px;
+    transform: rotate(14deg);
+    z-index: 2;
+  }
+
+  .meter-info { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+  .score-text { font-size: 14px; color: var(--text-dim); }
+  .score-text b { color: var(--gold); font-size: 16px; }
+  .meter-label { font-size: 12px; color: var(--gold); opacity: 0.85; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-top: 2px solid var(--gold);
+    border-radius: 6px;
+    padding: 30px 26px 24px;
+  }
+
+  .q-index {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  .q-text {
+    font-size: 23px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 22px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option {
+    text-align: left;
+    background: #1B2531;
+    border: 1.5px solid #37455780;
+    color: var(--text);
+    font-family: 'Fraunces', serif;
+    font-size: 16.5px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+
+  .option:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: #22293780;
+  }
+
+  .option:active:not(:disabled) { transform: scale(0.99); }
+
+  .option:disabled { cursor: default; }
+
+  .option.correct {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+  }
+
+  .option.wrong-selected {
+    border-color: var(--coral);
+    background: var(--coral-dim);
+  }
+
+  @keyframes reveal-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal-tag {
+    display: block;
+    font-size: 16px;
+    line-height: 1.4;
+    margin-top: 16px;
+    padding: 10px 0 10px 12px;
+    border-left: 2px solid;
+    animation: reveal-in 0.3s ease-out;
+  }
+
+  .reveal-tag.hit { border-color: var(--gold); color: var(--gold); }
+  .reveal-tag.miss { border-color: var(--coral); color: var(--coral); }
+
+  @keyframes correct-pulse {
+    0% { box-shadow: 0 0 0 0 var(--gold-dim); }
+    70% { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  .option.correct { animation: correct-pulse 0.6s ease-out; }
+
+  .video-wrap {
+    margin-top: 16px;
+    animation: reveal-in 0.3s ease-out;
+  }
+
+  .video-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .video-player {
+    width: 100%;
+    max-height: 360px;
+    display: block;
+    background: #000;
+    border-radius: 10px;
+    border: 1px solid var(--panel-border);
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 22px;
+  }
+
+  .nav-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 8px 4px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; text-decoration: none; }
+
+  .next-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    background: var(--gold);
+    color: #1B2430;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .next-btn:hover { background: #F0BF6E; }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .dot {
+    width: 3px; height: 14px;
+    border-radius: 1px;
+    background: #37455780;
+    flex-shrink: 0;
+  }
+
+  .dot.done { background: var(--gold); }
+  .dot.current { background: var(--text); height: 20px; }
+
+  .final-card {
+    text-align: center;
+    padding: 44px 30px;
+    box-shadow: inset 0 0 0 1px var(--gold-dim);
+  }
+
+  .final-card .big-num {
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .final-card .big-label {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .verdict {
+    font-size: 19px;
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  .restart-btn {
+    font-family: 'JetBrains Mono', monospace;
+    background: none;
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .restart-btn:hover { background: var(--gold-dim); }
+
+  .section-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: var(--coral-dim);
+    border: 1px solid #F2777A40;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--coral);
+  }
+
+  .milestone {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .rank-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 26px; }
+    .q-text { font-size: 19px; }
+    .card { padding: 22px 18px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Насколько ты знаешь<br>свою невесту?</h1>
+    <p class="intro-line">26 вопросов о Лив — для Лехи. Варианты каждый раз перемешиваются заново, так что подглядеть не выйдет.</p>
+  </div>
+
+  <div class="glass-wrap">
+    <div class="glass">
+      <div class="glass-outline"></div>
+      <div class="glass-body">
+        <div class="glass-fill" id="glassFill"></div>
+        <div class="ice-cube"></div>
+      </div>
+    </div>
+    <div class="meter-info">
+      <div class="score-text">Верных ответов: <b id="scoreNum">0</b> / <span id="scoreTotal">26</span></div>
+      <div class="meter-label" id="meterLabel">Бокал пуст</div>
+    </div>
+  </div>
+
+  <div id="quizArea"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    section: null,
+    q: "Какой у Лив рост?",
+    options: ["168 см", "170 см", "172 см", "175 см"],
+    correct: 2,
+    video: "Кружочек №1",
+    roasts: ["168? Ты её что, только сидящей видел?", "170 — близко, но «почти» не считается ни в дартс, ни в браке.", null, "175? Ты её вроде на каблуках все пять лет видел."]
+  },
+  {
+    q: "Любимый цвет?",
+    options: ["Зелёный", "Красный", "Коричневый", "Синий"],
+    correct: 0,
+    video: "Кружочек №2",
+    roasts: [null, "Красный? Ты её с настроением перепутал, не с цветом.", "Коричневый — это цвет твоего кофе, а не её любимый.", "Синий? Ты про носки её подумал, не про неё."]
+  },
+  {
+    q: "Во сколько она родилась?",
+    options: ["В 1 час ночи", "В 6 утра", "В обед", "Поздно вечером"],
+    correct: 0,
+    video: "Кружочек №3",
+    roasts: [null, "6 утра — это когда ты встаёшь на рыбалку, а не когда она родилась.", "В обед?! Ты серьёзно решил, что роды заказывали по расписанию?", "Поздно вечером — это когда ты обычно вспоминаешь важные даты."]
+  },
+  {
+    q: "Какая группа крови?",
+    options: ["I положительная", "II положительная", "III положительная", "IV отрицательная"],
+    correct: 2,
+    video: "Кружочек №4",
+    roasts: ["I положительная? Ты явно гадал по гороскопу.", "II — близко, но тут не «плюс-минус», а точный ответ.", null, "IV отрицательная — звучит уверенно, жаль, что мимо."]
+  },
+  {
+    q: "Размер обуви?",
+    options: ["37", "38", "39", "41"],
+    correct: 3,
+    video: "Кружочек №5",
+    roasts: ["37? Ты явно про свою ногу в детстве думал.", "38 — почти, но обувь тоже не любит «почти».", "39, ну хоть в нужную сторону промазал.", null]
+  },
+  {
+    q: "Есть ли у невесты приметная родинка или шрам? Где именно?",
+    options: ["Родинка на лице", "Родинка на пояснице", "Шрам на руке", "Родимое пятно на пояснице"],
+    correct: 0,
+    video: "Кружочек №6",
+    roasts: [null, "На пояснице? Ты явно перепутал с другим вариантом ответа.", "Шрам на руке — ты что, её с бойцом перепутал?", "Родимое пятно на пояснице — место почти угадал, суть — нет."]
+  },
+  {
+    q: "Любимое блюдо и напиток невесты (сейчас)?",
+    options: ["Хинкали с бараниной и капучино", "Цезарь и латте", "Суши и мохито", "Паста и раф"],
+    correct: 0,
+    video: "Кружочек №7",
+    roasts: [null, "Цезарь и латте — это твой заказ на рабочем ланче, не её.", "Суши и мохито — звучит как твоя мечта об отпуске, не её реальность.", "Паста и раф — красиво, но не про неё."]
+  },
+  {
+    q: "Какую еду невеста терпеть не может?",
+    options: ["Рис без специй", "Морепродукты", "Печень", "Острое"],
+    correct: 0,
+    video: "Кружочек №8",
+    roasts: [null, "Морепродукты? Ты явно спутал её с кем-то с аллергией.", "Печень — ты про свою после мальчишника думаешь, не про её вкусы.", "Острое — мимо, она смелее, чем ты думаешь."]
+  },
+  {
+    q: "Какие любимые исполнители у невесты?",
+    options: ["ATL и ЛСП", "Моргенштерн и Face", "Билли Айлиш и Ariana Grande", "Скриптонит и Miyagi"],
+    correct: 0,
+    video: "Кружочек №9",
+    roasts: [null, "Моргенштерн и Face — ты явно включил свой плейлист, не её.", "Билли Айлиш и Ariana Grande — красиво, но это не её топ.", "Скриптонит и Miyagi — мимо, хоть и со вкусом."]
+  },
+  {
+    q: "Любимый фильм невесты?",
+    options: ["Бойцовский клуб", "Титаник", "Ла-Ла Ленд", "Матрица"],
+    correct: 0,
+    video: "Кружочек №10",
+    roasts: [null, "Титаник — очевидный выбор, и именно поэтому не тот.", "Ла-Ла Ленд — красиво прогадал.", "Матрица — это явно твой любимый, не её."]
+  },
+  {
+    q: "Каким хобби Лив мечтает заняться?",
+    options: ["Конный спорт", "Танцы", "Живопись", "Дайвинг"],
+    correct: 0,
+    video: "Кружочек №11",
+    roasts: [null, "Танцы — близко по духу, но не то.", "Живопись — мимо, хотя звучит романтично.", "Дайвинг — ты явно спроецировал свою мечту на неё."]
+  },
+  {
+    q: "В какой стране/локации она мечтает побывать?",
+    options: ["Какой-нибудь остров (Индонезия / Шри-Ланка / Мальдивы)", "Япония", "Исландия", "Германия"],
+    correct: 0,
+    video: "Кружочек №12",
+    roasts: [null, "Япония — красивый промах.", "Исландия — там холодно, а она явно мечтает о тепле.", "Германия? Ты серьёзно решил, что она мечтает о сосисках и автобанах?"]
+  },
+  {
+    q: "Если Лив выиграет миллион, что купит первым?",
+    options: ["Кучу одежды и импульсивные покупки", "Квартиру", "Путешествие вокруг света", "Всё вложит в инвестиции"],
+    correct: 0,
+    video: "Кружочек №13",
+    roasts: [null, "Квартиру — практично, но не про неё в моменте эйфории от миллиона.", "Путешествие вокруг света — красиво, но мимо.", "Инвестиции? Ты явно описал себя, не невесту."]
+  },
+  {
+    q: "Топ-3 приложения, которыми Лив пользуется?",
+    options: ["Ozon, Яндекс Музыка, VK", "Instagram, Pinterest, Telegram", "TikTok, WhatsApp, Spotify", "YouTube, банк, почта"],
+    correct: 0,
+    video: "Кружочек №14",
+    roasts: [null, "Близко, но не совсем — почти знаешь её телефон.", "TikTok, WhatsApp, Spotify — модно, но не про неё.", "YouTube, банк, почта — ты описал скорее свой телефон в 40 лет."]
+  },
+  {
+    q: "Что выбесит Лив быстрее и сильнее всего?",
+    options: ["Когда кот шумит по ночам перед ранним подъёмом", "Опоздания", "Грязная посуда", "Когда её перебивают"],
+    correct: 0,
+    video: "Кружочек №15",
+    roasts: [null, "Опоздания — логично, но не то, что бесит сильнее всего.", "Грязная посуда — это уже скорее про тебя после мальчишника.", "Когда перебивают — близко по смыслу, но не главное."]
+  },
+  {
+    q: "Любимый мультфильм детства Лив?",
+    options: ["Винкс", "Русалочка", "Тачки", "Время приключений"],
+    correct: 0,
+    video: "Кружочек №16",
+    roasts: [null, "Русалочка — красивая догадка, но мимо.", "Тачки? Это явно твой любимый мультфильм, не её.", "Время приключений — мимо, но со вкусом."]
+  },
+  {
+    q: "Любимый предмет Лив в школе?",
+    options: ["Физра и математика", "Литература и биология", "История и география", "Химия и физика"],
+    correct: 0,
+    video: "Кружочек №17",
+    roasts: [null, "Литература и биология — красиво звучит, но не то.", "История и география — мимо, но хотя бы гуманитарно.", "Химия и физика — ты серьёзно решил, что она ботан?"]
+  },
+  {
+    q: "Как звали лучшую подругу детства Лив (более вероятный вариант)?",
+    options: ["Наташа", "Маша", "Даша", "Катя"],
+    correct: 0,
+    video: "Кружочек №18",
+    roasts: [null, "Маша — самое очевидное имя, и именно поэтому не то.", "Даша — мимо, но хотя бы созвучно.", "Катя — мимо, попробуй ещё раз в другой жизни."]
+  },
+  {
+    q: "Кем Лив мечтала стать в детстве (в самом начале)?",
+    options: ["Актрисой и певицей", "Врачом", "Учительницей", "Ветеринаром"],
+    correct: 0,
+    video: "Кружочек №19",
+    roasts: [null, "Врачом — серьёзный промах, она мечтала о софитах, не о халате.", "Учительницей — мимо, хотя объяснять тебе вещи у неё получается отлично.", "Ветеринаром — красиво, но нет."]
+  },
+  {
+    q: "Кто был любимой феей Винкс у Лив?",
+    options: ["Флора", "Блум", "Стелла", "Лейла"],
+    correct: 0,
+    video: "Кружочек №20",
+    roasts: [null, "Блум — самый очевидный выбор, и именно поэтому неверный.", "Стелла — мимо, хотя стильно.", "Лейла — мимо, но хотя бы не первая попавшаяся."]
+  },
+  {
+    q: "Что изменилось в жизни Лив с появлением Лехи?",
+    options: ["Стала спокойнее, увереннее и счастливее", "Начала больше путешествовать", "Стала строже к себе", "Появилось больше свободного времени"],
+    correct: 0,
+    video: "Кружочек №21",
+    roasts: [null, "Больше путешествовать? Ты явно описал свою мечту, не её изменения.", "Строже к себе — мимо, скорее наоборот.", "Больше свободного времени? С тобой? Ну-ну."]
+  },
+  {
+    section: "Вопросы поглубже",
+    q: "Что в поведении Лехи расположило к нему Лив в начале отношений?",
+    options: ["Целеустремлённость, упорство и вера в себя", "Чувство юмора", "Красивые ухаживания", "Умение готовить"],
+    correct: 0,
+    video: "Кружочек №22",
+    roasts: [null, "Чувство юмора — приятно, но не то, что её зацепило.", "Красивые ухаживания — мимо, романтика была, но не главная причина.", "Умение готовить? Ты серьёзно думаешь, что дело в борще?"]
+  },
+  {
+    q: "Какая привычка Лехи бесит Лив, но она с этим не до конца смирилась?",
+    options: ["Резко засыпает, когда хочется провести время вместе", "Вечно опаздывает", "Залипает в телефоне", "Разбрасывает вещи"],
+    correct: 0,
+    video: "Кружочек №23",
+    roasts: [null, "Опаздывает — логичная догадка, но не главная претензия.", "В телефоне — близко к правде жизни, но не то.", "Разбрасывает вещи — тоже бесит, но не так, как твой мгновенный сон."]
+  },
+  {
+    q: "Есть ли у Лехи тайный талант, о котором знает только Лив?",
+    options: ["Вкусно готовит кофе", "Отлично поёт", "Дудит на дуде", "Быстро моется"],
+    correct: 0,
+    video: "Кружочек №24",
+    roasts: [null, "Поёт? Ты явно спутал душ с концертом.", "Дудит на дуде — оригинально, но нет.", "Быстро моется — это не талант, это чудо, но не тот ответ."]
+  },
+  {
+    q: "Какую коронную фразу/шутку Лехи Лив может процитировать в любой момент?",
+    options: ["«Сказал как ртом» и «Думать вредно»", "«Всё будет ровно»", "«Я же говорил»", "Фраза из момента их знакомства"],
+    correct: 0,
+    video: "Кружочек №25",
+    roasts: [null, "«Всё будет ровно» — красиво, но это не его коронная фраза.", "«Я же говорил» — мимо, хотя звучит в его стиле.", "Фраза из знакомства — романтично, но не то, что она цитирует."]
+  },
+  {
+    q: "Если бы Лив описала Леху тремя словами-существительными, какие бы это были?",
+    options: ["Любые тёплые слова — про него будет правильно 💛"],
+    correct: 0,
+    noGuess: true,
+    video: "Кружочек №26"
+  }
+];
+
+questions.forEach((q, i) => {
+  if (i < 25) q.videoFile = `${i + 1} вопрос.mp4`;
+});
+
+function shuffleOptions(q) {
+  if (q.noGuess) return;
+  const order = q.options.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  q.correct = order.indexOf(q.correct);
+  q.options = order.map(i => q.options[i]);
+  if (q.roasts) q.roasts = order.map(i => q.roasts[i]);
+}
+questions.forEach(shuffleOptions);
+
+const hitPhrases = [
+  "Есть! Леха видно слушал, а не просто кивал.",
+  "В точку! Плюс балл к семейному стажу.",
+  "Бинго! Даже гадать не пришлось.",
+  "Точно! Ставим жениху зачёт.",
+  "В яблочко! Женится не зря.",
+  "Угадал! Либо память хорошая, либо интуиция.",
+  "Есть очко! Невеста довольна.",
+  "Красавчик! Это не случайность, это база.",
+  "Попал! Кто-то явно готовился к экзамену.",
+  "Оп, и в цель! Свадьба всё ближе.",
+  "Верно! Друзья, фиксируем: жених не безнадёжен.",
+  "Есть! Похоже, слушал не только вполуха.",
+  "Точное попадание. Невеста может выдохнуть.",
+  "Да! Ещё один повод налить не штрафную, а поздравительную.",
+  "Угадано! Такими темпами и до золотой свадьбы дотянет.",
+  "В цель! Кто-то за столом уже завидует.",
+  "Есть балл! Явно не первый раз задумывался об этом.",
+  "Точно в десятку! Невеста ставит лайк.",
+  "Красавец, попал! Помолвка была не зря.",
+  "Есть! Значит, всё-таки слушал, пока делал вид, что смотрит телефон.",
+  "Правильно! Плюс один к репутации внимательного жениха.",
+  "Оба-на, угадал! Похоже, домашнее задание выполнено.",
+  "В самую точку! Тост в его честь заслужен.",
+  "Есть попадание! Дальше — только сложнее.",
+  "Верно подмечено! Невеста явно рассказывала это не раз.",
+];
+
+const missPhrases = [
+  "Мимо! Штрафную ему — быстро, пока не сбежал от позора.",
+  "Ты серьёзно? Почти пять лет встречаетесь, а ты как с улицы зашёл.",
+  "Ноль. Друзья, у нас тут жених-детектив, всё мимо кассы.",
+  "Мда, Леха. Может, хватит смотреть в её глаза и начать слушать?",
+  "Промах! Заявление в ЗАГС ещё можно отозвать, время подумать есть.",
+  "Не угадал. Кольцо-то надел, а вот в голову ничего не положил.",
+  "Ай, стыдоба. Невеста слышит это и уже пересматривает решение.",
+  "Промах! Ты хоть на свиданиях слушал или сразу в телефон смотрел?",
+  "Мимо! Ну ты хотя бы уверенно ошибся, это тоже талант.",
+  "Ноль баллов. Может, тебе тест не на невесту, а на внимательность нужен?",
+  "Промах! Почти пять лет романа, а знаний — как на первом свидании.",
+  "Не угадал. Друзья, фиксируем: жених красивый, но невнимательный.",
+  "Мимо! Похоже, он всё это время кивал, а не запоминал.",
+  "Ай-ай-ай. Ещё пара таких ответов — и невеста попросит пересдачу отношений.",
+  "Промах! Штрафную — и пусть невеста расскажет это ещё раз, помедленнее.",
+  "Не то. Такое чувство, что он женится на другой девушке.",
+  "Мимо! Ну хоть в постели, наверное, лучше ориентируется, чем в её жизни.",
+  "Ноль! Даже гугл бы справился лучше.",
+  "Промах! Скажи спасибо, что не она сейчас это слушает.",
+  "Не угадал. Ты точно её невесту знаешь, а не соседку?",
+  "Мимо! Ставим ему жирный минус и штрафную покрепче.",
+  "Ай, позорище. Записываем в протокол мальчишника.",
+  "Промах! Может, дело не в памяти, а в том, что не спрашивал никогда?",
+];
+
+let current = 0;
+let score = 0;
+let answered = new Array(questions.length).fill(null);
+let reactions = new Array(questions.length).fill(null);
+
+const quizArea = document.getElementById('quizArea');
+const scoreNum = document.getElementById('scoreNum');
+const scoreTotal = document.getElementById('scoreTotal');
+const glassFill = document.getElementById('glassFill');
+const meterLabel = document.getElementById('meterLabel');
+
+scoreTotal.textContent = questions.filter(q => !q.noGuess).length;
+
+function getMeterLabel(pct) {
+  if (pct === 0) return 'Бокал пуст';
+  if (pct < 34) return 'На дне';
+  if (pct < 67) return 'Полбокала';
+  if (pct < 100) return 'Почти полный';
+  return 'Полный до краёв!';
+}
+
+function updateMeter() {
+  scoreNum.textContent = score;
+  const pct = (score / questions.length) * 100;
+  glassFill.style.height = pct + '%';
+  meterLabel.textContent = getMeterLabel(pct);
+}
+
+function render() {
+  if (current >= questions.length) {
+    renderFinal();
+    return;
+  }
+
+  const item = questions[current];
+  const chosen = answered[current];
+
+  const sectionHtml = item.section ? `<div class="section-banner">🥃 Раунд 2 · ${item.section}</div>` : '';
+  const milestoneHtml = current === 12 ? `<div class="milestone">🏁 Экватор! Половина вопросов позади — соберись, дальше сложнее.</div>` : '';
+
+  if (item.noGuess) {
+    const revealed = chosen !== null;
+    const optsHtml = `<button class="option" ${revealed ? 'disabled' : ''} onclick="selectOption(0)">${item.options[0]}</button>`;
+    const videoHtml = '';
+
+    quizArea.innerHTML = `
+      ${sectionHtml}
+      <div class="card">
+        ${milestoneHtml}
+        <div class="q-index">Вопрос ${current + 1} / ${questions.length}</div>
+        <div class="q-text">${item.q}</div>
+        <div class="options">${optsHtml}</div>
+        ${videoHtml}
+        <div class="nav">
+          <button class="nav-btn" onclick="goPrev()" ${current === 0 ? 'disabled' : ''}>← Назад</button>
+          ${revealed ? `<button class="next-btn" onclick="goNext()">К итогам 🏁</button>` : '<span></span>'}
+        </div>
+      </div>
+      <div class="dots">
+        ${questions.map((_, i) => {
+          let cls = 'dot';
+          if (i === current) cls += ' current';
+          else if (answered[i] !== null) cls += ' done';
+          return `<div class="${cls}"></div>`;
+        }).join('')}
+      </div>
+    `;
+    return;
+  }
+
+  let optsHtml = item.options.map((opt, i) => {
+    let cls = 'option';
+    if (chosen !== null) {
+      if (i === item.correct) cls += ' correct';
+      else if (i === chosen) cls += ' wrong-selected';
+    }
+    return `<button class="${cls}" ${chosen !== null ? 'disabled' : ''} onclick="selectOption(${i})">${opt}</button>`;
+  }).join('');
+
+  let revealHtml = '';
+  let videoHtml = '';
+  if (chosen !== null) {
+    const hit = chosen === item.correct;
+    revealHtml = `<div class="reveal-tag ${hit ? 'hit' : 'miss'}">${hit ? '✓' : '✗'} ${reactions[current]}</div>`;
+    if (item.videoFile) {
+      videoHtml = `<div class="video-wrap"><div class="video-caption">🎥 Видео-ответ Лив</div><video class="video-player" controls preload="metadata" src="${encodeURI(item.videoFile)}"></video></div>`;
+    }
+  }
+
+  quizArea.innerHTML = `
+    ${sectionHtml}
+    <div class="card">
+      ${milestoneHtml}
+      <div class="q-index">Вопрос ${current + 1} / ${questions.length}</div>
+      <div class="q-text">${item.q}</div>
+      <div class="options">${optsHtml}</div>
+      ${revealHtml}
+      ${videoHtml}
+      <div class="nav">
+        <button class="nav-btn" onclick="goPrev()" ${current === 0 ? 'disabled' : ''}>← Назад</button>
+        ${chosen !== null ? `<button class="next-btn" onclick="goNext()">${current === questions.length - 1 ? 'К итогам 🏁' : 'Погнали дальше →'}</button>` : '<span></span>'}
+      </div>
+    </div>
+    <div class="dots">
+      ${questions.map((_, i) => {
+        let cls = 'dot';
+        if (i === current) cls += ' current';
+        else if (answered[i] !== null) cls += ' done';
+        return `<div class="${cls}"></div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function selectOption(i) {
+  if (answered[current] !== null) return;
+  answered[current] = i;
+  if (!questions[current].noGuess) {
+    const item = questions[current];
+    const hit = i === item.correct;
+    if (hit) {
+      reactions[current] = hitPhrases[Math.floor(Math.random() * hitPhrases.length)];
+      score++;
+      updateMeter();
+    } else {
+      const specific = item.roasts && item.roasts[i];
+      reactions[current] = specific || missPhrases[Math.floor(Math.random() * missPhrases.length)];
+    }
+  }
+  render();
+}
+
+function goNext() {
+  current++;
+  render();
+}
+
+function goPrev() {
+  if (current > 0) {
+    current--;
+    render();
+  }
+}
+
+function renderFinal() {
+  const guessTotal = questions.filter(q => !q.noGuess).length;
+  const pct = Math.round((score / guessTotal) * 100);
+  let verdict, rank;
+  if (pct >= 85) {
+    rank = "🏆 Знаток невесты";
+    verdict = "Леха, ты знаешь свою невесту как облупленную. Свадьбе быть! 🥂";
+  } else if (pct >= 60) {
+    rank = "🥈 Почти эксперт";
+    verdict = "Неплохо, жених! Ещё пара разговоров по душам — и будешь знать всё.";
+  } else if (pct >= 35) {
+    rank = "🥉 Начинающий жених";
+    verdict = "Ну... хорошо, что вы решили пожениться сейчас, а не через угадайку.";
+  } else {
+    rank = "🎓 Нужна пересдача";
+    verdict = "Леха, срочно домой изучать матчасть! Но невеста всё равно тебя любит 💛";
+  }
+
+  quizArea.innerHTML = `
+    <div class="card final-card">
+      <div class="rank-badge">${rank}</div>
+      <div class="big-num">${score}/${guessTotal}</div>
+      <div class="big-label">Итоговый результат</div>
+      <div class="verdict">${verdict}</div>
+      <button class="restart-btn" onclick="restart()">Пройти заново</button>
+    </div>
+  `;
+}
+
+function restart() {
+  current = 0;
+  score = 0;
+  answered = new Array(questions.length).fill(null);
+  reactions = new Array(questions.length).fill(null);
+  questions.forEach(shuffleOptions);
+  updateMeter();
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
