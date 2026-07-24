@@ -984,7 +984,7 @@ function render() {
     revealHtml = `<div class="reveal-tag ${hit ? 'hit' : 'miss'}">${hit ? '✓' : '✗'} ${reactions[current]}</div>`;
     if (correctSet(item).length > 1) {
       const acceptedTexts = correctSet(item).map(idx => item.options[idx]);
-      revealHtml += `<div class="alt-answers">Тоже принимались: ${acceptedTexts.join(', ')}</div>`;
+      revealHtml += `<div class="alt-answers">Принимаются: ${acceptedTexts.join(', ')}</div>`;
     }
     if (item.videoFile) {
       videoHtml = `<div class="video-wrap"><div class="video-caption">🎥 Видео-ответ Лив</div><video class="video-player" controls preload="metadata" src="${encodeURI(item.videoFile)}"></video></div>`;
