@@ -505,17 +505,17 @@ const questions = [
   },
   {
     q: "Что выбесит Лив быстрее и сильнее всего?",
-    options: ["Когда кот шумит по ночам перед ранним подъёмом", "Опоздания в важные моменты", "Грязная посуда, оставленная на потом", "Когда перебивают на середине мысли"],
-    correct: 0,
+    options: ["Когда кот шумит по ночам перед ранним подъёмом", "Внезапный хаос с учебной нагрузкой и дедлайнами", "Грязная посуда, оставленная на потом", "Когда перебивают на середине мысли"],
+    correct: [0, 1],
     video: "Кружочек №15",
-    roasts: [null, "Опоздания — логично, но не то, что бесит сильнее всего.", "Грязная посуда — это уже скорее про тебя после мальчишника.", "Когда перебивают — близко по смыслу, но не главное."]
+    roasts: [null, null, "Грязная посуда — это уже скорее про тебя после мальчишника.", "Когда перебивают — близко по смыслу, но не главное."]
   },
   {
     q: "Любимый мультфильм детства Лив?",
     options: ["Винкс", "Русалочка", "Тачки", "Время приключений"],
-    correct: 0,
+    correct: [0, 3],
     video: "Кружочек №16",
-    roasts: [null, "Русалочка — красивая догадка, но мимо.", "Тачки? Это явно твой любимый мультфильм, не её.", "Время приключений — мимо, но со вкусом."]
+    roasts: [null, "Русалочка — красивая догадка, но мимо.", "Тачки? Это явно твой любимый мультфильм, не её.", null]
   },
   {
     q: "Любимый предмет Лив в школе?",
@@ -527,9 +527,9 @@ const questions = [
   {
     q: "Как звали лучшую подругу детства Лив (более вероятный вариант)?",
     options: ["Наташа", "Маша", "Даша", "Катя"],
-    correct: 0,
+    correct: [0, 1, 2],
     video: "Кружочек №18",
-    roasts: [null, "Маша — самое очевидное имя, и именно поэтому не то.", "Даша — мимо, но хотя бы созвучно.", "Катя — мимо, попробуй ещё раз в другой жизни."]
+    roasts: [null, null, null, "Катя — мимо, попробуй ещё раз в другой жизни."]
   },
   {
     q: "Кем Лив мечтала стать в детстве (в самом начале)?",
@@ -594,6 +594,10 @@ questions.forEach((q, i) => {
   if (i < 25) q.videoFile = `${i + 1} вопрос.mp4`;
 });
 
+function correctSet(item) {
+  return Array.isArray(item.correct) ? item.correct : [item.correct];
+}
+
 function shuffleOptions(q) {
   if (q.noGuess) return;
   const order = q.options.map((_, i) => i);
@@ -601,7 +605,9 @@ function shuffleOptions(q) {
     const j = Math.floor(Math.random() * (i + 1));
     [order[i], order[j]] = [order[j], order[i]];
   }
-  q.correct = order.indexOf(q.correct);
+  q.correct = Array.isArray(q.correct)
+    ? q.correct.map(c => order.indexOf(c))
+    : order.indexOf(q.correct);
   q.options = order.map(i => q.options[i]);
   if (q.roasts) q.roasts = order.map(i => q.roasts[i]);
 }
@@ -734,7 +740,7 @@ function render() {
   let optsHtml = item.options.map((opt, i) => {
     let cls = 'option';
     if (chosen !== null) {
-      if (i === item.correct) cls += ' correct';
+      if (correctSet(item).includes(i)) cls += ' correct';
       else if (i === chosen) cls += ' wrong-selected';
     }
     return `<button class="${cls}" ${chosen !== null ? 'disabled' : ''} onclick="selectOption(${i})">${opt}</button>`;
@@ -780,7 +786,7 @@ function selectOption(i) {
   answered[current] = i;
   if (!questions[current].noGuess) {
     const item = questions[current];
-    const hit = i === item.correct;
+    const hit = correctSet(item).includes(i);
     if (hit) {
       reactions[current] = hitPhrases[Math.floor(Math.random() * hitPhrases.length)];
       score++;
