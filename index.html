@@ -489,6 +489,21 @@
 
   .start-btn:hover { background: #F0BF6E; }
 
+  .reset-link {
+    text-align: center;
+    margin-top: 28px;
+  }
+
+  .reset-link a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.4;
+    text-decoration: none;
+  }
+
+  .reset-link a:hover { opacity: 0.8; text-decoration: underline; }
+
   @media (max-width: 480px) {
     h1 { font-size: 26px; }
     .q-text { font-size: 19px; }
@@ -568,6 +583,10 @@
     </div>
 
     <div id="quizArea"></div>
+  </div>
+
+  <div class="reset-link">
+    <a href="#" onclick="resetAll(); return false;">Сбросить прогресс</a>
   </div>
 </div>
 
@@ -1130,6 +1149,12 @@ function startQuiz() {
     updateMeter();
   }
   render();
+}
+
+function resetAll() {
+  if (!confirm('Сбросить весь прогресс и начать с первого вопроса?')) return;
+  clearProgress();
+  location.reload();
 }
 </script>
 </body>
