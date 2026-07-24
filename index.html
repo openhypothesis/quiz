@@ -214,6 +214,14 @@
   .reveal-tag.hit { border-color: var(--gold); color: var(--gold); }
   .reveal-tag.miss { border-color: var(--coral); color: var(--coral); }
 
+  .alt-answers {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    padding-left: 14px;
+  }
+
   @keyframes correct-pulse {
     0% { box-shadow: 0 0 0 0 var(--gold-dim); }
     70% { box-shadow: 0 0 0 8px transparent; }
@@ -740,8 +748,7 @@ function render() {
   let optsHtml = item.options.map((opt, i) => {
     let cls = 'option';
     if (chosen !== null) {
-      if (correctSet(item).includes(i)) cls += ' correct';
-      else if (i === chosen) cls += ' wrong-selected';
+      if (i === chosen) cls += correctSet(item).includes(i) ? ' correct' : ' wrong-selected';
     }
     return `<button class="${cls}" ${chosen !== null ? 'disabled' : ''} onclick="selectOption(${i})">${opt}</button>`;
   }).join('');
@@ -749,8 +756,12 @@ function render() {
   let revealHtml = '';
   let videoHtml = '';
   if (chosen !== null) {
-    const hit = chosen === item.correct;
+    const hit = correctSet(item).includes(chosen);
     revealHtml = `<div class="reveal-tag ${hit ? 'hit' : 'miss'}">${hit ? '✓' : '✗'} ${reactions[current]}</div>`;
+    if (correctSet(item).length > 1) {
+      const acceptedTexts = correctSet(item).map(idx => item.options[idx]);
+      revealHtml += `<div class="alt-answers">Тоже принимались: ${acceptedTexts.join(', ')}</div>`;
+    }
     if (item.videoFile) {
       videoHtml = `<div class="video-wrap"><div class="video-caption">🎥 Видео-ответ Лив</div><video class="video-player" controls preload="metadata" src="${encodeURI(item.videoFile)}"></video></div>`;
     }
